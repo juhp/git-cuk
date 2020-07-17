@@ -13,7 +13,7 @@ import Options.Applicative (Parser, ParserInfo, command, execParser, fullDesc, h
                             infoOption, long, metavar, progDesc, short, strArgument, subparser)
 
 import Cuk.ColorTerminal (blueCode, boldCode, redCode, resetCode)
-import Cuk.Git (runHop)
+import Cuk.Git (runFresh, runHop)
 
 import qualified Paths_git_cuk as Meta (version)
 
@@ -21,6 +21,7 @@ import qualified Paths_git_cuk as Meta (version)
 cuk :: IO ()
 cuk = execParser cliParser >>= \case
     Hop branchName -> runHop branchName
+    Fresh branchName -> runFresh branchName
 
 ----------------------------------------------------------------------------
 -- Parsers
@@ -32,18 +33,25 @@ cliParser = info ( helper <*> versionP <*> cukP )
     $ fullDesc <> progDesc "Haskell Git Helper Tool"
 
 -- | Commands for
-newtype CukCommand
+data CukCommand
     = Hop (Maybe Text)
+    | Fresh (Maybe Text)
 
 -- | Commands parser.
 cukP :: Parser CukCommand
 cukP = subparser
-    $ command "hop" (info (helper <*> hopP) $ progDesc "Switch to branch and sync it")
+    $ command "hop"   (info (helper <*> hopP)   $ progDesc "Switch to branch and sync it")
+   <> command "fresh" (info (helper <*> freshP) $ progDesc "Rebase current branch on remote one")
 
 hopP :: Parser CukCommand
-hopP = do
-    branchName <- optional $ strArgument (metavar "BRANCH_NAME")
-    pure $ Hop branchName
+hopP = Hop <$> maybeBranchP
+
+freshP :: Parser CukCommand
+freshP = Fresh <$> maybeBranchP
+
+-- | Parse optional branch name as an argument.
+maybeBranchP :: Parser (Maybe Text)
+maybeBranchP = optional $ strArgument (metavar "BRANCH_NAME")
 
 -- | Show the version of the tool.
 versionP :: Parser (a -> a)
