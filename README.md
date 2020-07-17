@@ -7,3 +7,11 @@
 [![Build status](https://secure.travis-ci.org/siapbantu/git-cuk.svg)](https://travis-ci.org/siapbantu/git-cuk)
 
 Haskell Git Helper Tool
+
+## Configure
+
+Specify your login:
+
+```
+git config --global user.login <your_login>
+```

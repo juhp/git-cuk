@@ -6,12 +6,11 @@ module Cuk.Git
        ( runHop
        , runFresh
        , runNew
+       , runPush
        ) where
 
 import Cuk.ColorTerminal (errorMessage)
 import Cuk.Shell (($|))
-
-import qualified Data.Text as T
 
 
 -- | @cuk hop@ command.
@@ -33,8 +32,16 @@ runNew issueNum = do
     if login == ""
         then errorMessage "user.login is not specified"
         else do
-            let branchName = T.strip login <> "/" <> show issueNum
+            let branchName = login <> "/" <> show issueNum
             "git" ["checkout", "-b", branchName]
+
+-- | @cuk push@ command.
+runPush :: IO ()
+runPush = getCurrentBranch >>= \branch -> "git" ["push", "-u", "origin", branch]
 
 nameOrMaster :: Maybe Text -> Text
 nameOrMaster = fromMaybe "master"
+
+-- | Get the name of the current branch.
+getCurrentBranch :: IO Text
+getCurrentBranch = "git" $| ["rev-parse", "--abbrev-ref", "HEAD"]
