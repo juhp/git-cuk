@@ -25,6 +25,7 @@ library
   exposed-modules:     Cuk
                          Cuk.Cli
                          Cuk.ColorTerminal
+                         Cuk.Git
                          Cuk.Shell
 
   autogen-modules:     Paths_git_cuk

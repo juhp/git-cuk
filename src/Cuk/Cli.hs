@@ -1,3 +1,4 @@
+{-# LANGUAGE ApplicativeDo   #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 -- | Command line interface for @cuk@ executable.
@@ -8,29 +9,41 @@ module Cuk.Cli
 
 import Data.Version (showVersion)
 import Development.GitRev (gitCommitDate, gitDirty, gitHash)
-import Options.Applicative (Parser, ParserInfo, execParser, fullDesc, help, helper, info,
-                            infoOption, long, progDesc, short)
+import Options.Applicative (Parser, ParserInfo, command, execParser, fullDesc, help, helper, info,
+                            infoOption, long, metavar, progDesc, short, strArgument, subparser)
 
 import Cuk.ColorTerminal (blueCode, boldCode, redCode, resetCode)
+import Cuk.Git (runHop)
 
-import qualified Paths_cuk_on as Meta (version)
+import qualified Paths_git_cuk as Meta (version)
 
 
 cuk :: IO ()
-cuk = execParser cliParser
+cuk = execParser cliParser >>= \case
+    Hop branchName -> runHop branchName
 
 ----------------------------------------------------------------------------
 -- Parsers
 ----------------------------------------------------------------------------
 
 -- | Main parser of the app.
-cliParser :: ParserInfo ()
+cliParser :: ParserInfo CukCommand
 cliParser = info ( helper <*> versionP <*> cukP )
     $ fullDesc <> progDesc "Haskell Git Helper Tool"
 
+-- | Commands for
+newtype CukCommand
+    = Hop (Maybe Text)
+
 -- | Commands parser.
-cukP :: Parser ()
-cukP = pass
+cukP :: Parser CukCommand
+cukP = subparser
+    $ command "hop" (info (helper <*> hopP) $ progDesc "Switch to branch and sync it")
+
+hopP :: Parser CukCommand
+hopP = do
+    branchName <- optional $ strArgument (metavar "BRANCH_NAME")
+    pure $ Hop branchName
 
 -- | Show the version of the tool.
 versionP :: Parser (a -> a)
