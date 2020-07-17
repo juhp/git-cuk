@@ -14,7 +14,7 @@ import Options.Applicative (Parser, ParserInfo, argument, auto, command, execPar
                             subparser, switch)
 
 import Cuk.ColorTerminal (arrow, blueCode, boldCode, redCode, resetCode)
-import Cuk.Git (runCommit, runFresh, runHop, runNew, runPush, runResolve, runSync)
+import Cuk.Git (runCommit, runCurrent, runFresh, runHop, runNew, runPush, runResolve, runSync)
 import Cuk.Issue (runIssue)
 
 import qualified Data.Text as T
@@ -31,6 +31,7 @@ cuk = execParser cliParser >>= \case
     Resolve branchName -> runResolve branchName
     Push -> runPush
     Sync -> runSync
+    Current -> runCurrent >>= flip whenJust (runIssue . Just)
 
 ----------------------------------------------------------------------------
 -- Parsers
@@ -51,6 +52,7 @@ data CukCommand
     | Resolve (Maybe Text)
     | Push
     | Sync
+    | Current
 
 -- | Commands parser.
 cukP :: Parser CukCommand
@@ -63,6 +65,7 @@ cukP = subparser
    <> command "push"    (info (helper <*> pushP)    $ progDesc "Push the current branch")
    <> command "sync"    (info (helper <*> syncP)    $ progDesc "Sync local branch with its remote")
    <> command "resolve" (info (helper <*> resolveP) $ progDesc "Switch to master, sync and delete the branch")
+   <> command "current" (info (helper <*> currentP) $ progDesc "Show info about current branch and issue (if applicable)")
 
 hopP :: Parser CukCommand
 hopP = Hop <$> maybeBranchP
@@ -90,6 +93,9 @@ pushP = pure Push
 
 syncP :: Parser CukCommand
 syncP = pure Sync
+
+currentP :: Parser CukCommand
+currentP = pure Current
 
 resolveP :: Parser CukCommand
 resolveP = Resolve <$> maybeBranchP
