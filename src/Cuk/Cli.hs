@@ -14,7 +14,7 @@ import Options.Applicative (Parser, ParserInfo, argument, auto, command, execPar
                             subparser)
 
 import Cuk.ColorTerminal (arrow, blueCode, boldCode, redCode, resetCode)
-import Cuk.Git (runFresh, runHop, runNew, runPush)
+import Cuk.Git (runCommit, runFresh, runHop, runNew, runPush)
 import Cuk.Issue (runIssue)
 
 import qualified Data.Text as T
@@ -27,6 +27,7 @@ cuk = execParser cliParser >>= \case
     Fresh branchName -> runFresh branchName
     New issueNum -> runNew issueNum
     Issue issueNum -> runIssue issueNum
+    Commit message -> runCommit message
     Push -> runPush
 
 ----------------------------------------------------------------------------
@@ -43,21 +44,22 @@ data CukCommand
     = Hop (Maybe Text)
     | Fresh (Maybe Text)
     | New Int
+    | Commit Text
     | Issue (Maybe Int)
     | Push
 
 -- | Commands parser.
 cukP :: Parser CukCommand
 cukP = subparser
-    $ command "hop"   (info (helper <*> hopP)   $ progDesc "Switch to branch and sync it")
-   <> command "fresh" (info (helper <*> freshP) $ progDesc "Rebase current branch on remote one")
-   <> command "new"   (info (helper <*> newP)   $ progDesc "Create new branch from current one")
-   <> command "issue" (info (helper <*> issueP) $ progDesc "Show the information about the issue")
-   <> command "push"  (info (helper <*> pushP)  $ progDesc "Push the current branch")
+    $ command "hop"    (info (helper <*> hopP)    $ progDesc "Switch to branch and sync it")
+   <> command "fresh"  (info (helper <*> freshP)  $ progDesc "Rebase current branch on remote one")
+   <> command "new"    (info (helper <*> newP)    $ progDesc "Create new branch from current one")
+   <> command "commit" (info (helper <*> commitP) $ progDesc "Commit all local changes and prepend issue number")
+   <> command "issue"  (info (helper <*> issueP)  $ progDesc "Show the information about the issue")
+   <> command "push"   (info (helper <*> pushP)   $ progDesc "Push the current branch")
 
 hopP :: Parser CukCommand
 hopP = Hop <$> maybeBranchP
-
 
 freshP :: Parser CukCommand
 freshP = Fresh <$> maybeBranchP
@@ -68,7 +70,10 @@ newP = New <$> issueNumP
 issueP :: Parser CukCommand
 issueP = Issue <$> optional issueNumP
 
-pushP :: Parser HitCommand
+commitP :: Parser CukCommand
+commitP = Commit <$> strArgument (metavar "COMMIT_MESSAGE")
+
+pushP :: Parser CukCommand
 pushP = pure Push
 
 -- | Parse optional branch name as an argument.
