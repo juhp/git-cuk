@@ -11,7 +11,7 @@ import Data.Version (showVersion)
 import Development.GitRev (gitCommitDate, gitDirty, gitHash)
 import Options.Applicative (Parser, ParserInfo, argument, auto, command, execParser, fullDesc, help,
                             helper, info, infoOption, long, metavar, progDesc, short, strArgument,
-                            subparser)
+                            subparser, switch)
 
 import Cuk.ColorTerminal (arrow, blueCode, boldCode, redCode, resetCode)
 import Cuk.Git (runCommit, runFresh, runHop, runNew, runPush, runResolve, runSync)
@@ -27,7 +27,7 @@ cuk = execParser cliParser >>= \case
     Fresh branchName -> runFresh branchName
     New issueNum -> runNew issueNum
     Issue issueNum -> runIssue issueNum
-    Commit message -> runCommit message
+    Commit message noIssue -> runCommit message noIssue
     Resolve branchName -> runResolve branchName
     Push -> runPush
     Sync -> runSync
@@ -47,7 +47,7 @@ data CukCommand
     | Fresh (Maybe Text)
     | New Int
     | Issue (Maybe Int)
-    | Commit Text
+    | Commit Text Bool
     | Resolve (Maybe Text)
     | Push
     | Sync
@@ -77,7 +77,13 @@ issueP :: Parser CukCommand
 issueP = Issue <$> optional issueNumP
 
 commitP :: Parser CukCommand
-commitP = Commit <$> strArgument (metavar "COMMIT_MESSAGE")
+commitP = do
+    msg <- strArgument (metavar "COMMIT_MESSAGE")
+    noIssue <- switch
+        $ long "no-issue"
+       <> short 'n'
+       <> help "Do not add [#ISSUE_NUMBER] prefix when specified"
+    pure $ Commit msg noIssue
 
 pushP :: Parser CukCommand
 pushP = pure Push
