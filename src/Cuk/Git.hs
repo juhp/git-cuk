@@ -80,14 +80,14 @@ runFix = do
     runPush True
 
 -- | @cuk push@ command.
-runPush :: IO ()
-runPush = getCurrentBranch >>= \branch -> "git" ["push", "-u", "origin", branch]
-
--- | @cuk sync@ command.
 runPush :: Bool -> IO ()
 runPush isForce = getCurrentBranch >>= \branch ->
     "git" $ ["push", "--set-upstream", "origin", branch]
          ++ ["--force" | isForce]
+
+-- | @cuk sync@ command.
+runSync :: IO ()
+runSync = getCurrentBranch >>= \branch -> "git" ["pull", "--rebase", "origin", branch]
 
 -- | @cuk resolve@ command.
 runResolve :: Maybe Text -> IO ()
