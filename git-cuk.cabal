@@ -1,0 +1,90 @@
+cabal-version:       2.0
+name:                git-cuk
+version:             0.0.0
+synopsis:            Haskell Git Helper Tool
+description:         Haskell Git Helper Tool
+homepage:            https://github.com/siapbantu/git-cuk
+bug-reports:         https://github.com/siapbantu/git-cuk/issues
+license:             MPL-2.0
+license-file:        LICENSE
+author:              Siapbantu
+maintainer:          human@shitiomatic.email
+copyright:           2020 Siapbantu
+category:            Git, CLI Tool
+build-type:          Simple
+extra-doc-files:     README.md
+                   , CHANGELOG.md
+tested-with:         GHC == 8.6.3
+
+source-repository head
+  type:                git
+  location:            https://github.com/siapbantu/git-cuk.git
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     GitCuk
+                       Prelude
+
+  build-depends:       base-noprelude ^>= 4.12.0.0
+                     , relude
+
+  ghc-options:         -Wall
+                       -Wincomplete-uni-patterns
+                       -Wincomplete-record-updates
+                       -Wcompat
+                       -Widentities
+                       -Wredundant-constraints
+                       -fhide-source-paths
+                       -Wmissing-export-lists
+                       -Wpartial-fields
+
+  default-language:    Haskell2010
+  default-extensions:  ConstraintKinds
+                       DeriveGeneric
+                       GeneralizedNewtypeDeriving
+                       InstanceSigs
+                       KindSignatures
+                       LambdaCase
+                       OverloadedStrings
+                       RecordWildCards
+                       ScopedTypeVariables
+                       StandaloneDeriving
+                       TupleSections
+                       TypeApplications
+                       ViewPatterns
+
+executable git-cuk
+  hs-source-dirs:      app
+  main-is:             Main.hs
+
+  build-depends:       base-noprelude ^>= 4.12.0.0
+                     , git-cuk
+                     , relude
+
+  ghc-options:         -Wall
+                       -threaded
+                       -rtsopts
+                       -with-rtsopts=-N
+                       -Wincomplete-uni-patterns
+                       -Wincomplete-record-updates
+                       -Wcompat
+                       -Widentities
+                       -Wredundant-constraints
+                       -fhide-source-paths
+                       -Wmissing-export-lists
+                       -Wpartial-fields
+
+  default-language:    Haskell2010
+  default-extensions:  ConstraintKinds
+                       DeriveGeneric
+                       GeneralizedNewtypeDeriving
+                       InstanceSigs
+                       KindSignatures
+                       LambdaCase
+                       OverloadedStrings
+                       RecordWildCards
+                       ScopedTypeVariables
+                       StandaloneDeriving
+                       TupleSections
+                       TypeApplications
+                       ViewPatterns
