@@ -10,7 +10,7 @@
     "description": "Area: Core MT implementation."
   },
   {
-    "name": "A-crate-features",
+    "name": "A-package-features",
     "color": "f7e101",
     "description": "Area: Compile-time features or attributes."
   },
@@ -32,7 +32,7 @@
   {
     "name": "A-release",
     "color": "f7e101",
-    "description": "Area: crates.io releases and version bumps."
+    "description": "Area: Hackage releases and version bumps."
   },
   {
     "name": "C-bug",
