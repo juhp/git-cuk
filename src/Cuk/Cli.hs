@@ -14,7 +14,7 @@ import Options.Applicative (Parser, ParserInfo, argument, auto, command, execPar
                             subparser)
 
 import Cuk.ColorTerminal (arrow, blueCode, boldCode, redCode, resetCode)
-import Cuk.Git (runCommit, runFresh, runHop, runNew, runPush)
+import Cuk.Git (runCommit, runFresh, runHop, runNew, runPush, runSync)
 import Cuk.Issue (runIssue)
 
 import qualified Data.Text as T
@@ -29,6 +29,7 @@ cuk = execParser cliParser >>= \case
     Issue issueNum -> runIssue issueNum
     Commit message -> runCommit message
     Push -> runPush
+    Sync -> runSync
 
 ----------------------------------------------------------------------------
 -- Parsers
@@ -44,9 +45,10 @@ data CukCommand
     = Hop (Maybe Text)
     | Fresh (Maybe Text)
     | New Int
-    | Commit Text
     | Issue (Maybe Int)
+    | Commit Text
     | Push
+    | Sync
 
 -- | Commands parser.
 cukP :: Parser CukCommand
@@ -57,6 +59,7 @@ cukP = subparser
    <> command "commit" (info (helper <*> commitP) $ progDesc "Commit all local changes and prepend issue number")
    <> command "issue"  (info (helper <*> issueP)  $ progDesc "Show the information about the issue")
    <> command "push"   (info (helper <*> pushP)   $ progDesc "Push the current branch")
+   <> command "sync"   (info (helper <*> syncP)   $ progDesc "Sync local branch with its remote")
 
 hopP :: Parser CukCommand
 hopP = Hop <$> maybeBranchP
@@ -75,6 +78,9 @@ commitP = Commit <$> strArgument (metavar "COMMIT_MESSAGE")
 
 pushP :: Parser CukCommand
 pushP = pure Push
+
+syncP :: Parser CukCommand
+syncP = pure Sync
 
 -- | Parse optional branch name as an argument.
 maybeBranchP :: Parser (Maybe Text)
