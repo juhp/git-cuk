@@ -65,8 +65,10 @@ runPush :: IO ()
 runPush = getCurrentBranch >>= \branch -> "git" ["push", "-u", "origin", branch]
 
 -- | @cuk sync@ command.
-runSync :: IO ()
-runSync = getCurrentBranch >>= \branch -> "git" ["pull", "--rebase", "origin", branch]
+runPush :: Bool -> IO ()
+runPush isForce = getCurrentBranch >>= \branch ->
+    "git" $ ["push", "--set-upstream", "origin", branch]
+         ++ ["--force" | isForce]
 
 -- | @cuk resolve@ command.
 runResolve :: Maybe Text -> IO ()
