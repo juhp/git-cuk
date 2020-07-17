@@ -1,7 +1,8 @@
 module Main (main) where
 
-import GitCuk (someFunc)
+import System.IO (hSetEncoding, stdout, utf8)
 
+import Cuk (cuk)
 
 main :: IO ()
-main = someFunc
+main = hSetEncoding stdout utf8 >> cuk

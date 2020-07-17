@@ -22,11 +22,19 @@ source-repository head
 
 library
   hs-source-dirs:      src
-  exposed-modules:     GitCuk
+  exposed-modules:     Cuk
+                         Cuk.Cli
+                         Cuk.ColorTerminal
+
+  autogen-modules:     Paths_git_cuk
+  other-modules:       Paths_git_cuk
                        Prelude
 
   build-depends:       base-noprelude ^>= 4.12.0.0
-                     , relude
+                     , ansi-terminal >= 0.8
+                     , gitrev ^>= 1.3
+                     , optparse-applicative ^>= 0.14
+                     , relude ^>= 0.4
 
   ghc-options:         -Wall
                        -Wincomplete-uni-patterns
@@ -53,11 +61,11 @@ library
                        TypeApplications
                        ViewPatterns
 
-executable git-cuk
+executable cuk
   hs-source-dirs:      app
   main-is:             Main.hs
 
-  build-depends:       base-noprelude ^>= 4.12.0.0
+  build-depends:       base ^>= 4.12.0.0
                      , git-cuk
                      , relude
 
