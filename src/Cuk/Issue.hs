@@ -4,13 +4,16 @@ module Cuk.Issue
          -- * Internal helpers
        , mkIssueId
        , getIssueTitle
+       , getOwnerRepo
+       , parseOwnerRepo
        ) where
 
-import GitHub (Error, Id, Issue (..), IssueState (..), getUrl, mkId)
+import GitHub (Error (..), Id, Issue (..), IssueState (..), Name, Owner, Repo, getUrl, mkId, mkName)
 import GitHub.Data.Options (stateOpen)
 import GitHub.Endpoints.Issues (issue, issuesForRepo)
 
 import Cuk.ColorTerminal (arrow, blueCode, errorMessage, redCode, resetCode)
+import Cuk.Shell (($|))
 
 import qualified Data.Text as T
 
@@ -23,7 +26,7 @@ runIssue = \case
 
 -- | Get the list of the opened issues for the current project.
 getAllIssues :: IO ()
-getAllIssues = issuesForRepo "siapbantu" "git-cuk" stateOpen >>= \case
+getAllIssues = withOwnerRepo (\o r -> issuesForRepo o r stateOpen) >>= \case
     Left err -> errorMessage $ show err
     Right is -> for_ is (putTextLn . showIssueName blueCode)
 
@@ -51,10 +54,49 @@ showIssueFull i@Issue{..} = T.intercalate "\n" $
 mkIssueId :: Int -> Id Issue
 mkIssueId = mkId $ Proxy @Issue
 
+makeName :: forall a . Text -> Name a
+makeName = mkName (Proxy @a)
+
 fetchIssue :: Id Issue -> IO (Either Error Issue)
-fetchIssue = issue "siapbantu" "git-cuk"
+fetchIssue iNum = withOwnerRepo (\o r -> issue o r iNum)
 
 getIssueTitle :: Id Issue -> IO Text
 getIssueTitle num = fetchIssue num >>= \case
     Left err -> errorMessage (show err) >> exitFailure
     Right Issue{..} -> pure issueTitle
+
+withOwnerRepo :: (Name Owner -> Name Repo -> IO (Either Error a)) -> IO (Either Error a)
+withOwnerRepo action = getOwnerRepo >>= \case
+    Just (owner, repo) -> action owner repo
+    Nothing -> do
+        let errTxt = "Can not get the owner/repo names"
+        errorMessage errTxt
+        pure $ Left $ ParseError errTxt
+
+
+-- | Get the owner and the repository name.
+getOwnerRepo :: IO (Maybe (Name Owner, Name Repo))
+getOwnerRepo = parseOwnerRepo <$> "git" $| ["remote", "get-url", "origin"]
+
+{- |
+__Note:__ this works with GitHub projects!
+This function supports two kinds of the URLs:
+SSH one:
+@
+git@github.com:siapbantu/git-cuk.git
+@
+And HTTPS one:
+@
+https://github.com/siapbantu/git-cuk.git
+@
+-}
+parseOwnerRepo :: Text -> Maybe (Name Owner, Name Repo)
+parseOwnerRepo url =
+    ( T.stripPrefix "git@github.com:"     url
+  <|> T.stripPrefix "https://github.com/" url
+    ) >>= T.stripSuffix ".git" >>= separateName
+  where
+    separateName :: Text -> Maybe (Name Owner, Name Repo)
+    separateName nm =
+        let (owner, T.drop 1 -> repo) = T.breakOn "/" nm in
+        guard (owner /= "" && repo /= "") *> Just (makeName owner, makeName repo)
