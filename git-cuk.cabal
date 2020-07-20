@@ -1,8 +1,8 @@
 cabal-version:       2.0
 name:                git-cuk
 version:             0.0.1
-synopsis:            Haskell Git Helper Tool
-description:         Haskell Git Helper Tool
+synopsis:            Siapbantu Git Workflow Helper Tool
+description:         Siapbantu Git Workflow Helper Tool
 homepage:            https://github.com/siapbantu/git-cuk
 bug-reports:         https://github.com/siapbantu/git-cuk/issues
 license:             MPL-2.0
