@@ -14,8 +14,8 @@ import Options.Applicative (Parser, ParserInfo, argument, auto, command, execPar
                             subparser, switch)
 
 import Cuk.ColorTerminal (arrow, blueCode, boldCode, redCode, resetCode)
-import Cuk.Git (runCommit, runCurrent, runFix, runAmend, runFresh, runHop, runNew, runPush, runResolve,
-                runSync)
+import Cuk.Git (runAmend, runClone, runCommit, runCurrent, runFix, runFresh, runHop, runNew,
+                runPush, runResolve, runSync)
 import Cuk.Issue (runIssue)
 
 import qualified Data.Text as T
@@ -35,6 +35,7 @@ cuk = execParser cliParser >>= \case
     Push isForce -> runPush isForce
     Sync -> runSync
     Current -> runCurrent >>= flip whenJust (runIssue . Just)
+    Clone name -> runClone name
 
 ----------------------------------------------------------------------------
 -- Parsers
@@ -45,7 +46,7 @@ cliParser :: ParserInfo CukCommand
 cliParser = info ( helper <*> versionP <*> cukP )
     $ fullDesc <> progDesc "Haskell Git Helper Tool"
 
--- | Commands for
+-- | Commands for @cuk@ executable.
 data CukCommand
     = Hop (Maybe Text)
     | Fresh (Maybe Text)
@@ -58,6 +59,7 @@ data CukCommand
     | Push Bool
     | Sync
     | Current
+    | Clone Text
 
 -- | Commands parser.
 cukP :: Parser CukCommand
@@ -73,6 +75,7 @@ cukP = subparser
    <> command "sync"    (info (helper <*> syncP)    $ progDesc "Sync local branch with its remote")
    <> command "resolve" (info (helper <*> resolveP) $ progDesc "Switch to master, sync and delete the branch")
    <> command "current" (info (helper <*> currentP) $ progDesc "Show info about current branch and issue (if applicable)")
+   <> command "clone"   (info (helper <*> cloneP)   $ progDesc "Clone the repo. Use 'reponame' or 'username/reponame' formats")
 
 hopP :: Parser CukCommand
 hopP = Hop <$> maybeBranchP
@@ -116,6 +119,9 @@ currentP = pure Current
 
 resolveP :: Parser CukCommand
 resolveP = Resolve <$> maybeBranchP
+
+cloneP :: Parser CukCommand
+cloneP = Clone <$> strArgument (metavar "REPOSITORY")
 
 -- | Parse optional branch name as an argument.
 maybeBranchP :: Parser (Maybe Text)

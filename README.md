@@ -98,6 +98,31 @@ git config --global user.login <your_login>
 The best way to demonstrate the power of the `cuk` tool on a day-to-day basis with our workflow is to go through the entire workflow step by step, solving an ordinary problem of the typical [`git`][git] user.
 
 > Here we assume that you work with `origin` remote with the main branch set to `master`.
+
+### cuk clone
+
+If you don't have the repository locally, you need to clone it. With the `git`
+tool you would need to specify the full URL which you can get from the
+repository GitHub page.
+
+```shell
+git clone git@github.com:username/project-name.git
+```
+
+`cuk` can simplify this process a bit. If you want to clone the project which is
+under your GitHub username you can write:
+
+```shell
+cuk clone my-project
+```
+
+If this is not your personal repository then you can use `clone` command in the
+following way:
+
+```shell
+cuk clone owner-name/project-name
+```
+
 ### cuk hop
 
 When you want to start working on a new issue, you usually want to make sure you're using the latest version of your project. As a `git` user you may use the following commands:
