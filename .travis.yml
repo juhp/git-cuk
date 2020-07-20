@@ -4,7 +4,7 @@ language: haskell
 git:
   depth: 5
 
-cabal: "head"
+cabal: head
 
 cache:
   directories:
@@ -17,31 +17,52 @@ matrix:
   - ghc: 8.6.3
 
   - ghc: 8.6.3
-    env: STACK_YAML="$TRAVIS_BUILD_DIR/stack.yaml"
+    env: STACK_YAML="$TRAVIS_BUILD_DIR/stack.yaml" DEPLOY=yes
 
 install:
-  - |
-    if [ -z "$STACK_YAML" ]; then
-      cabal new-update
-      cabal new-build --enable-tests --enable-benchmarks
-    else
-      curl -sSL https://get.haskellstack.org/ | sh
-      stack --version
-      stack build --system-ghc --test --no-run-tests
-    fi
+- |
+  if [ -z "$STACK_YAML" ]; then
+    cabal new-update
+    cabal new-build --enable-tests --enable-benchmarks
+  else
+    curl -sSL https://get.haskellstack.org/ | sh
+    stack --version
+    stack build --system-ghc --test --no-run-tests --bench --no-run-benchmarks
+  fi
 
 script:
-  - |
-    if [ -z "$STACK_YAML" ]; then
-       echo 'No tests'
-    else
-      stack build --system-ghc --test --bench --no-run-benchmarks --no-terminal --ghc-options=-Werror
-    fi
+- |
+  if [ -z "$STACK_YAML" ]; then
+     echo 'No tests'
+  else
+    stack test --system-ghc --no-terminal
+  fi
 
-  # HLint check
-  - curl https://raw.githubusercontent.com/siapbantu/git-cuk/0d05809d08518d0b42dcdd176fad154d0be5ea97/.hlint.yaml -o .hlint-relude.yaml
-  - curl -sSL https://raw.github.com/ndmitchell/neil/master/misc/travis.sh | sh -s -- hlint -h .hlint-relude.yaml src/
+# HLint check
+- curl https://raw.githubusercontent.com/siapbantu/git-cuk/0d05809d08518d0b42dcdd176fad154d0be5ea97/.hlint.yaml
+  -o .hlint-relude.yaml
+- curl -sSL https://raw.github.com/ndmitchell/neil/master/misc/travis.sh | sh -s --
+  hlint -h .hlint-relude.yaml src/
 
+after_success:
+- |
+  if [ "$DEPLOY" = "yes" ]; then
+    echo "cuk deploy triggered!"
+    mv "$(stack path --system-ghc --local-install-root)/bin/cuk" "cuk-${TRAVIS_OS_NAME}"
+    chmod +x "cuk-${TRAVIS_OS_NAME}"
+    git tag "$(date +'%Y%m%d%H%M%S')"
+  fi
+
+deploy:
+- skip_cleanup: true
+  provider: releases
+  api_key:
+    secure: UdrfNh6Ul/cniHZVL7kobSz9A2ft1NCXFkgP4Hi2spM8F7mQXCkx5GhtX6pvGAkcMf3W8SXEHxsl03xENJOHhPmJP2J9uMkL4cDZ2QcpX9Gqx6VM9+CLMiLwPZDyv01qV6ot2cElWjPivL8Kfz2qn8nr5wemIa9bFolmZ3BCSwJvXqTBN25J4AXaliYMuaHGXB0UbR5Ytd+fUfOF8CMk26yohNUqzQ4v5P2CqdjxCwBUB73x8IkInfl7lTN62UcZEW8f/oUOOQXJO0Fm1MaVFPOllBEjjqftamR5Lfon0XQUXiZalDLmPOmhir68/5OfG92SkhBVEiJK6mzZEnUPNUcbXEsgZFVLosQQyqaUGPD59w1ky+OIW5ldRo71nBBxsYWvC34J4tQCSgrVVs+x4F6SNAOYfWc4y3/9y6cKghevo831EQdlh1fJi+RMbk07B0c/JbdT1G3DKYR+zeeDKzsysJ/pyoSphg7o56JJejHE/kqG90PpxQc+Jwmaxpflu+Dhu9VjTnkP5YLibggV1zVnjp2+BEiQz0vq9T9iWjJNpUyhe5uLesyeGAV0Gg4lXXKp3qGcenavd30rwwUwfk7d6bD/yBmSOJHypmdejHS4Du9gH6ovWtrX4LkP+I/PlBjkTcIvvI26oRcAwGwTvBDXqSGET7vlHQhnqW8VCgg=
+  file: cuk-${TRAVIS_OS_NAME}
+  on:
+    repo: siapbantu/git-cuk
+    tags: true
+    condition: $DEPLOY = yes
 
 notifications:
   email: false
